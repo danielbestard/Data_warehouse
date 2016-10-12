@@ -138,6 +138,17 @@ INSERT INTO `employees` (`EmployeeID`, `LastName`, `FirstName`, `Title`, `TitleO
 -- --------------------------------------------------------
 
 --
+-- Dumping data for table `shippers`
+--
+
+INSERT INTO `shippers` (`ShipperID`, `CompanyName`, `Phone`) VALUES
+(1, 'Speedy Express', '(503) 555-9831'),
+(2, 'United Package', '(503) 555-3199'),
+(3, 'Federal Shipping', '(503) 555-9931');
+-- --------------------------------------------------------
+
+
+--
 -- Dumping data for table `orders`
 --
 
@@ -3223,17 +3234,6 @@ INSERT INTO `products` (`ProductID`, `ProductName`, `SupplierID`, `CategoryID`, 
 (75, 'Rh?nbr?u Klosterbier', 12, 1, '24 - 0.5 l bottles', 0, 125, 0, 25, 0),
 (76, 'Lakkalik??ri', 23, 1, '500 ml', 0, 57, 0, 20, 0),
 (77, 'Original Frankfurter gr?ne So?e', 12, 2, '12 boxes', 0, 32, 0, 15, 0);
-
--- --------------------------------------------------------
-
---
--- Dumping data for table `shippers`
---
-
-INSERT INTO `shippers` (`ShipperID`, `CompanyName`, `Phone`) VALUES
-(1, 'Speedy Express', '(503) 555-9831'),
-(2, 'United Package', '(503) 555-3199'),
-(3, 'Federal Shipping', '(503) 555-9931');
 
 -- --------------------------------------------------------
 
