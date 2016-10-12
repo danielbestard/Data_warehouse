@@ -96,7 +96,7 @@ create table products(
     UnitPrice float,
     UnitsInStock smallint,
     UnitsOnOrder smallint,
-    RecorderLevel smallint,
+    ReorderLevel smallint,
     Discontinued tinyint,
 foreign key (SupplierID) references suppliers(SupplierID),
 foreign key (CategoryID) references categories(CategoryID)
