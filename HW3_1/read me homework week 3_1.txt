@@ -1,0 +1,13 @@
+﻿Objective:
+
+Getting familiar with basic SQL DML
+
+Materials:
+
+Use the schema ecommerce provided in the first assignment.  
+The file HW3_name_surname.sql is provided. Add the proper SQL query directly in the file following the instruction.
+
+Logistic:
+
+You have to deliver a .sql files. Due by Friday 21 of October 13h p.m. 
+Upload the file on the homework box directory that Esther Xifré shered with you this week and name it HW3_”you name”_”your surname”.
