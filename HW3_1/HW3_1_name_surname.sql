@@ -10,7 +10,8 @@ use ecommerce;
 -- 2) Show the PK, name, and quantity per unit from all products in stock
 
 select ProductID, ProductName, QuantityPerUnit 
-from products;
+from products
+where UnitsInStock>0;
 
 -- 3) Show the number of products ever on sale in our stores
 
@@ -91,45 +92,65 @@ and ContactTitle in ('Sales Representative','Sales Manager');
 --  13) Show the number of employees that are 50 years old or more 
 --  as at 2014-10-06 (you will probably need to use the DATE_FORMAT function) 
 
-select count(EmployeeID) from employees where TIMESTAMPDIFF(YEAR, date_format(BirthDate,'%Y-%m-%d'), '2014-10-06')>50;
+select count(EmployeeID) 
+from employees 
+where TIMESTAMPDIFF(YEAR, date_format(BirthDate,'%Y-%m-%d'), '2014-10-06')>50;
 
 --  14) Show the age of the oldest employee of the company
 --  (hint: use the YEAR and DATE_FORMAT functions)
 
-select max(TIMESTAMPDIFF(YEAR, date_format(BirthDate,'%Y-%m-%d'), current_date())) from employees;
+select max(TIMESTAMPDIFF(YEAR, date_format(BirthDate,'%Y-%m-%d'), current_date())) 
+from employees;
 
 --  15) Show the number of products whose quantity per unit is measured in bottles
 
-select count(ProductID) from products where QuantityPerUnit like "%bottles%";
+select count(ProductID) 
+from products 
+where QuantityPerUnit like "%bottles%";
 
 -- 16) Show the number of customers with a Spanish or British common surname
 --  (a surname that ends with -on or -ez)
 
-select count(CustomerID) from customers where ContactName like '%on' or ContactName like '%ez';
+select count(CustomerID) 
+from customers 
+where ContactName like '%on' or ContactName like '%ez';
 
 --  17) Show how many distinct countries our 
 --  customers with a Spanish or British common surname come from
 --  (a surname that ends with -on or -ez)
 
-select count(distinct(Country)) from customers where ContactName like '%on' or ContactName like '%ez';
+select count(distinct(Country)) 
+from customers 
+where ContactName like '%on' or ContactName like '%ez';
 
 
 --  18) Show the number of products whose names do not contain the letter 'a'
 --  (Note: patterns are not case sensitive)
 
-select count(ProductID) from products where ProductName not like '%a%';
+select count(ProductID) 
+from products 
+where ProductName not like '%a%';
 
 --  19) Get the total number of single items sold ever
 
-select count(num) from (select count(odID) as num from order_details group by OrderID) where num=1;
+-- Number of orders with one single item.
 
-select count(OrderID) from order_details where (select count(odID) from order_details group by OrderID);
+select count(num) 
+from (select count(odID) as num from order_details group by OrderID) temp 
+where num=1;
+
+-- Total number of items sold ever.
+
+select sum(Quantity) 
+from order_details;
 
 --  20) Get the id of all products sold at least one time
 
 select distinct(ProductID) from order_details where Quantity>=1;
 
 --  21) Is there any product that was never sold?
+
+-- No, every product has been sold at least once.
 
 --  22) Get the list of products sorted by category on the following way:
 --  2,4,6,7,3,1,5,8
