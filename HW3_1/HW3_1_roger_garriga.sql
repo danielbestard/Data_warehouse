@@ -1,4 +1,3 @@
-
 -- Problem set week 3
 
 -- Please add the proper SQL query to follow the instructions below  
@@ -158,7 +157,8 @@ select distinct(ProductID) from order_details where Quantity>=1;
 --  category 4, and so on.
 --  Sort alphabetically by ProductName inside one category (hint: use CASE WHEN)
 
-;
+select ProductName, CategoryID
+from products order by field(CategoryID,2,4,6,7,3,1,5,8), ProductName asc;
 
 
 
