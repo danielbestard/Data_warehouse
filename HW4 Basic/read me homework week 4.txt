@@ -1,0 +1,19 @@
+﻿
+Basic topics
+
+Objective:
+
+Getting familiar stored routines
+
+Materials:
+
+Use the schema ecommerce provided.
+The file HW4_name_surname.sql is provided. Add the proper SQL query directly in the file following the instruction.
+
+Logistic:
+
+You have to deliver a .sql files. Due by Friday 28 of October 13h p.m. 
+
+Upload the file on the homework box directory that Esther Xifré shered with you this week and name it HW4”you name”_”your surname”.
+
+

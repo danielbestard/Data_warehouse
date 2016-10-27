@@ -1,0 +1,15 @@
+﻿Objective:
+
+Getting familiar with basic SQL DML (join and set operations)
+
+Materials:
+
+Use the schema music-store provided in this directory. The data dump is already prepared just load it.  
+The file HW3_2_name_surname.sql is provided. Add the proper SQL query directly in the file following the instructions.
+
+Logistic:
+
+You have to deliver a .sql files. Due by Friday 28 of October 13h p.m. 
+
+Upload the file on the homework box directory that Esther Xifré shered with you this week and name it HW3_2”you name”_”your surname”.
+
