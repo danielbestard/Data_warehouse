@@ -84,25 +84,42 @@ Order by temp.price DESC limit 5;
 -- (tracks contained in an album must be from at least two different genres)
 -- Show the result sorted by the number of different genres from the most to the least eclectic 
 
-
+select Album.AlbumId, temp.Num as NumberGenres 
+from Album inner join 
+(select Track.AlbumId, count(distinct(Track.GenreId)) as Num 
+from Track group by AlbumId) temp on temp.AlbumId=Album.AlbumId
+where temp.num>1 
+order by temp.num Desc;
 
 -- 10.Show the total number of albums that you get from the previous result (hint: use a nested query)
 
+Select count(AlbumId) from 
+(select Album.AlbumId, temp.Num as NumberGenres 
+from Album inner join 
+(select Track.AlbumId, count(distinct(Track.GenreId)) as Num 
+from Track group by AlbumId) temp on temp.AlbumId=Album.AlbumId
+where temp.num>1 
+order by temp.num Desc) NumGenres;
 
 
 -- 11.Show the	number of tracks that were ever in some invoice
 
-
+select count(distinct(InvoiceLine.TrackId)) from InvoiceLine;
 
 -- 12.Show the Customer id and total amount of money billed to the five best customers 
 -- (Those with the highest cumulated billed imports)
 
-
+select Invoice.CustomerId, sum(Invoice.Total) as Billed 
+from Invoice group by Invoice.CustomerId order by Billed DESC limit 5;
 
 
 -- 13.Add the customer's first name and last name to the previous result
 -- (hint:use a nested query)
 
+select temp.CustomerId, Customer.FirstName, Customer.LastName, temp.Billed 
+from (select Invoice.CustomerId, sum(Invoice.Total) as Billed 
+from Invoice group by Invoice.CustomerId order by Billed DESC limit 5) temp 
+left join Customer on Customer.CustomerId=temp.CustomerId;
 
 
 -- 14.Check that the total amount of money in each invoice
