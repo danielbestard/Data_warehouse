@@ -19,38 +19,64 @@ where Composer like "%F. Baltes%";
 
 -- 2.Show the Number of invoices, and the number of invoices with a total amount =0
 
+select count(InvoiceId) from Invoice
+UNION
+select count(InvoiceId) from Invoice where Total=0;
 
 -- 3.Show the album title and artist name of the first five albums sorted alphabetically
 
-
+select Album.Title, Artist.Name 
+from Album Left join Artist on Album.ArtistId=Artist.ArtistId
+order by Album.Title ASC limit 5;  
 
 -- 4.Show the Id, first name, and last name of the 10 first customers 
 -- alphabetically ordered. Include the id, first name and last name 
 -- of their support representative (employee)
  
-
+select Customer.CustomerId, Customer.FirstName as CustomerFirstName, 
+Customer.LastName as CustomerLastName, Employee.EmployeeId, 
+Employee.FirstName as RepFirstName, Employee.LastName as RepLastName 
+from Customer inner join Employee on Employee.EmployeeId=Customer.SupportRepId
+order by Customer.FirstName ASC limit 10;
 
 -- 5.Show the Track name, duration, album title, artist name,
 --  media name, and genre name for the five longest tracks
 
-
+select Track.Name, Track.Milliseconds, temp.Title, temp.Name 
+from Track inner join 
+(select Album.AlbumId, Album.Title, Artist.Name 
+from Album inner join Artist on Artist.ArtistId=Album.ArtistId) temp 
+order by Track.Milliseconds Desc limit 5;
 
 -- 6.Show Employees' first name and last name
 -- together with their supervisor's first name and last name
 -- Sort the result by employee last name
 
-
+select Employee.FirstName, Employee.LastName, supervisor.FirstName, supervisor.LastName
+from Employee Left join 
+Employee supervisor on supervisor.EmployeeId=Employee.ReportsTo
+order by Employee.LastName;
 
 -- 7.Show the Five most expensive albums
 --  (Those with the highest cumulated unit price)
 --  together with the average price per track
 
-
+select Album.Title, temp.price/temp.num as Average
+from Album inner join 
+(select Track.AlbumId, sum(Track.UnitPrice) as price, count(Track.TrackId) as num 
+from Track Group by Track.AlbumId) temp on temp.AlbumId=Album.AlbumId 
+Order by temp.price DESC limit 5;
 
 -- 8. Show the Five most expensive albums
 --  (Those with the highest cumulated unit price)
 -- but only if the average price per track is above 1
 
+select Album.Title, temp.price/temp.num as Average
+from Album inner join 
+(select Track.AlbumId, sum(Track.UnitPrice) as price, count(Track.TrackId) as num 
+from Track Group by Track.AlbumId) temp on temp.AlbumId=Album.AlbumId 
+Where temp.price/temp.num>1
+Order by temp.price DESC limit 5;
 
 
 -- 9.Show the album Id and number of different genres
