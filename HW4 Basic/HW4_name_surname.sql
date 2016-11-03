@@ -24,9 +24,14 @@ USE ecommerce;
         - amount_d (will store the amount generated in dollars)
 */
 
+drop table if exists myreport;
 
-
-
+Create Table myreport(
+	dt_ini datetime,
+    dt_end datetime,
+    qty int,
+    amount_e float,
+    amount_d float);
 
 
 
@@ -37,23 +42,30 @@ USE ecommerce;
     the table if it previously exists. 
     An initial version of the the procedure could be the following:
 */            
+
+/* Answer */
+
 DROP PROCEDURE IF EXISTS create_myreport;
 DELIMITER //    
 CREATE PROCEDURE create_myreport()
 BEGIN
 DROP TABLE IF EXISTS myreport;
-/* Code to create the table*/
+Create Table myreport(
+	dt_ini datetime,
+    dt_end datetime,
+    qty int,
+    amount_e float,
+    amount_d float);
 END //
 DELIMITER ;
 
 
-/* Answer */
 
 
 -- Call the procedure to create myreport
 
 
-
+call create_myreport();
 
 /*  
     Step 3) Create a function that receives a value in euros and 
@@ -61,17 +73,17 @@ DELIMITER ;
     Note: Assume 1.25 dollars = 1 euro
     An initial version of the function is the following:
 */
-DROP FUNCTION IF EXISTS euro_to_dollar;
-DELIMITER //
-CREATE FUNCTION euro_to_dollar(qty DECIMAL(8,2)) RETURNS DECIMAL(8,2)
-    /* function body! */
-    RETURN qty
-//
-DELIMITER ;
 
 
 /* Answer */
 
+DROP FUNCTION IF EXISTS euro_to_dollar;
+DELIMITER //
+CREATE FUNCTION euro_to_dollar(qty DECIMAL(8,2)) RETURNS DECIMAL(8,2)
+
+    RETURN qty*1.25
+//
+DELIMITER ;
 
 
 
