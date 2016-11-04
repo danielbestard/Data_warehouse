@@ -78,10 +78,11 @@ call create_myreport();
 /* Answer */
 
 DROP FUNCTION IF EXISTS euro_to_dollar;
+
 DELIMITER //
 CREATE FUNCTION euro_to_dollar(qty DECIMAL(8,2)) RETURNS DECIMAL(8,2)
 
-    RETURN qty*1.25
+    RETURN qty/1.25
 //
 DELIMITER ;
 
@@ -97,8 +98,8 @@ DELIMITER ;
 DROP VIEW IF EXISTS myview;
 CREATE VIEW myview AS
 SELECT a.OrderID,
-        a.OrderDate, 
-        SUM(b.Quantity * 1 - b.Discount) AS total_e
+        a.OrderDate, SUM(b.Quantity) as total_qty,
+        SUM(b.Quantity * (1.0 - b.Discount)) AS total_e
 FROM orders a
 LEFT JOIN order_details b
 ON a.OrderID = b.OrderID
@@ -121,22 +122,25 @@ GROUP BY a.OrderID, a.OrderDate;
 */
 
 
+/* Answer */
+
 DROP PROCEDURE IF EXISTS insert_myreport;
 DELIMITER //
 CREATE PROCEDURE insert_myreport (dt_ini DATE, dt_end DATE)
 BEGIN
     INSERT INTO myreport (dt_ini, dt_end, qty, amount_e, amount_d)
-    /* Query... */
-    WHERE dt_ini <= OrderDate AND OrderDate <= dt_end;
+		Select dt_ini, dt_end, sum(myview.total_qty), 
+        sum(myview.total_e), sum(euro_to_dollar(myview.total_e))
+		from myview
+		WHERE dt_ini <= OrderDate AND OrderDate <= dt_end;
 END
 //
 DELIMITER ;
 
 
-/* Answer */
 
 
-/* CALL insert_myreport('1990-01-01','2000-01-01'); */
+ CALL insert_myreport('1990-01-01','2000-01-01'); 
 
 
 /*
@@ -147,13 +151,21 @@ DELIMITER ;
     generate the report, it is as simple as executing....
 */
 
+truncate table myreport;
 
+CALL insert_myreport('1996-01-01','1996-07-31'); 
+CALL insert_myreport('1996-08-01','1996-12-31'); 
 
+CALL insert_myreport('1997-01-01','1997-07-31'); 
+CALL insert_myreport('1997-08-01','1997-12-31'); 
+
+CALL insert_myreport('1998-01-01','1998-07-31'); 
+CALL insert_myreport('1998-08-01','1998-12-31'); 
 
 
 /*  And we have the result in the report table. have a look at it */
 
-
+select * from myreport;
 
 /*  
     Step 7)  Imagine now that we are asked to refine
@@ -164,5 +176,6 @@ DELIMITER ;
 */
 
 /*  
-    Answer: 
+    Answer: I would create a procedure that does an update table, 
+	changing the amount_d=amount_e*1.3
 */
