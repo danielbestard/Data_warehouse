@@ -63,7 +63,11 @@ CREATE FUNCTION levenshtein_ratio( s1 VARCHAR(255), s2 VARCHAR(255) )
 		DECLARE s1_len, s2_len, max_len INT;
         
 		SET s1_len = LENGTH(s1), s2_len = LENGTH(s2);
-		IF s1_len > s2_len THEN
+		IF isnull(s1) or isnull(s2) THEN
+			RETURN 0;
+		ELSEIF s1_len=0 AND s2_len=0 THEN
+			RETURN 1;
+        ELSEIF s1_len > s2_len THEN
 			SET max_len = s1_len;
 		ELSE
 			SET max_len = s2_len;
@@ -75,7 +79,10 @@ DELIMITER ;
 -- test function    
 SELECT levenshtein_ratio('aaa','bbb') FROM dual;
 SELECT levenshtein_ratio('aaa','bab') FROM dual;
-
+SELECT levenshtein_ratio('','') FROM dual;
+SELECT levenshtein_ratio(NULL,'bab') FROM dual;
+SELECT levenshtein_ratio('aaa',NULL) FROM dual;
+SELECT levenshtein_ratio(NULL,NULL) FROM dual;
 
 ####################################
 # Exercise 2: k-nearest neighbours #
