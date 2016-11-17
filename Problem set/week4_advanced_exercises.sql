@@ -87,6 +87,9 @@ SELECT levenshtein_ratio(NULL,NULL) FROM dual;
 ####################################
 # Exercise 2: k-nearest neighbours #
 ####################################
+
+#Create the summary of the customers
+
 DROP TABLE IF EXISTS knn_summary;
 
 CREATE TABLE knn_summary AS
@@ -97,6 +100,8 @@ CREATE TABLE knn_summary AS
                         FROM Invoice
                     GROUP BY CustomerID) b
 				  ON a.CustomerID = b.CustomerID;
+
+#Create a table of genres for each customer
 
 DROP TABLE IF EXISTS customers_genres;
 
@@ -112,6 +117,33 @@ CREATE TABLE customers_genres AS
 			ON Track.TrackID=b.TrackID) a 
 		ON Genre.GenreId=a.GenreID
 		group by Genre.Name, a.CustomerID;
+
+#Show the most similar customers to CustomerID=1
+#To do it, it takes the rules: 
+#								+3 if they share the country
+#								+1 if they share the same support representative
+#								From 0 to 6 depending on how similar are them in terms of they expenses
+#								+num of genres in common
+SELECT z.*,
+       country_sim + support_sim + amount_sim + gen_sim AS similarity
+  FROM (
+        SELECT knn_summary.*,
+			   CASE WHEN Country = 'Brazil' THEN 3 ELSE 0 END AS country_sim,
+               CASE WHEN SupportRepID = 3 THEN 1 ELSE 0 END AS support_sim,
+			   6 * (1 - ABS(TotalAmount - 39.62)/GREATEST(TotalAmount,39.62)) AS amount_sim,
+               count(genre) as gen_sim 
+          FROM knn_summary
+          inner join (select genre, CustomerID 
+						from customers_genres where genre in 
+                        (select genre from customers_genres where customerID=1)) a
+					ON knn_summary.CustomerID=a.CustomerID         
+         WHERE knn_summary.CustomerId != 1
+         group by knn_summary.CustomerID, Country, SupportRepId, TotalAmount
+        ) z
+  ORDER BY similarity DESC
+  LIMIT 3;
+
+#Create a procedure that calculates the 3 most similar customers for each customer
 
 DROP PROCEDURE IF EXISTS similar_customers;
 
@@ -175,27 +207,12 @@ BEGIN
 END$$
 DELIMITER ;         
 
+#Create the table of similar_customers
 call similar_customers;
 
+#Show the table of similar customers
+select * from similar_customers order by CustomerID;
 
-SELECT z.*,
-       country_sim + support_sim + amount_sim + gen_sim AS similarity
-  FROM (
-        SELECT knn_summary.*,
-			   CASE WHEN Country = 'Brazil' THEN 3 ELSE 0 END AS country_sim,
-               CASE WHEN SupportRepID = 3 THEN 1 ELSE 0 END AS support_sim,
-			   6 * (1 - ABS(TotalAmount - 39.62)/GREATEST(TotalAmount,39.62)) AS amount_sim,
-               count(genre) as gen_sim 
-          FROM knn_summary
-          inner join (select genre, CustomerID 
-						from customers_genres where genre in 
-                        (select genre from customers_genres where customerID=1)) a
-					ON knn_summary.CustomerID=a.CustomerID         
-         WHERE knn_summary.CustomerId != 1
-         group by knn_summary.CustomerID, Country, SupportRepId, TotalAmount
-        ) z
-  ORDER BY similarity DESC
-  LIMIT 3;
 
 ##################################
 # Exercise 3: Transitive Closure #
@@ -292,24 +309,30 @@ INSERT INTO karate(f1,f2) VALUES(34,33);
 DROP PROCEDURE IF EXISTS proc_karate_transitive_closure;
 
 DELIMITER //
-CREATE PROCEDURE proc_karate_transitive_closure(initialid INT)
+CREATE PROCEDURE proc_karate_transitive_closure(initialid INT, n INT)
 	BEGIN
+		Declare i int default 0;
+        set i=0;
 		SET @initialid = initialid;
 		DROP TABLE IF EXISTS karate_tc;
 		CREATE TABLE karate_tc AS SELECT @initialid AS id FROM dual;
-		SELECT * FROM karate_tc;
-        
-		REPEAT
+		
+		WHILE i<n DO
 			INSERT INTO karate_tc(id)
 				SELECT DISTINCT f1 AS id FROM karate WHERE f2 IN (SELECT id FROM karate_tc) AND f1 NOT IN (SELECT id FROM karate_tc)
 				UNION DISTINCT
 				SELECT DISTINCT f2 AS id FROM karate WHERE f1 IN (SELECT id FROM karate_tc) AND f2 NOT IN (SELECT id FROM karate_tc);
-		UNTIL ROW_COUNT() = 0 END REPEAT;
+		set i=i+1;
+        END WHILE;
+        SELECT * FROM karate_tc;
+        
 	END//
 DELIMITER ;
 
 -- test transitive closure    
-CALL proc_karate_transitive_closure(1);
+CALL proc_karate_transitive_closure(1,2);
 SELECT COUNT(*) FROM karate_tc;
-CALL proc_karate_transitive_closure(11);
+CALL proc_karate_transitive_closure(11,2);
+SELECT COUNT(*) FROM karate_tc;
+CALL proc_karate_transitive_closure(11,3);
 SELECT COUNT(*) FROM karate_tc;
