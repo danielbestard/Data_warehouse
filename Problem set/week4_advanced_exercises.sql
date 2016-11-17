@@ -7,7 +7,7 @@ USE musicstore;
 -- levenshtein
 DROP FUNCTION IF EXISTS levenshtein;
 
-DELIMITER //
+DELIMITER $$
 CREATE FUNCTION levenshtein( s1 VARCHAR(255), s2 VARCHAR(255) )
 	RETURNS INT
 	DETERMINISTIC
@@ -48,14 +48,14 @@ CREATE FUNCTION levenshtein( s1 VARCHAR(255), s2 VARCHAR(255) )
 			END WHILE;
 		END IF;
 		RETURN c;
-	END//
+	END$$
 DELIMITER ;
 
 
 -- Levenshtein ratio
 DROP FUNCTION IF EXISTS levenshtein_ratio;
 
-DELIMITER //
+DELIMITER $$
 CREATE FUNCTION levenshtein_ratio( s1 VARCHAR(255), s2 VARCHAR(255) )
 	RETURNS INT
 	DETERMINISTIC
@@ -73,7 +73,7 @@ CREATE FUNCTION levenshtein_ratio( s1 VARCHAR(255), s2 VARCHAR(255) )
 			SET max_len = s2_len;
 		END IF;
 		RETURN ROUND((1 - LEVENSHTEIN(s1, s2) / max_len) * 100);
-	END//
+	END$$
 DELIMITER ;    
     
 -- test function    
@@ -98,20 +98,104 @@ CREATE TABLE knn_summary AS
                     GROUP BY CustomerID) b
 				  ON a.CustomerID = b.CustomerID;
 
+DROP TABLE IF EXISTS customers_genres;
+
+CREATE TABLE customers_genres AS
+	SELECT a.CustomerID, Genre.Name Genre
+	from Genre inner join (
+		select b.CustomerID, Track.GenreId 
+		 from Track inner join (
+			SELECT Invoice.CustomerID, InvoiceLine.TrackID 
+				from InvoiceLine 
+					inner join	Invoice 
+				ON InvoiceLine.InvoiceID=Invoice.InvoiceID) b 
+			ON Track.TrackID=b.TrackID) a 
+		ON Genre.GenreId=a.GenreID
+		group by Genre.Name, a.CustomerID;
+
+DROP PROCEDURE IF EXISTS similar_customers;
+
+DELIMITER $$
+CREATE PROCEDURE similar_customers ()
+BEGIN
+	declare n int default 0;
+	declare i int default 0;
+    declare cntry varchar(255);
+    declare supprep int;
+    declare totam double;
+    declare cust int;
+    
+    
+    
+    select count(CustomerId) from Customer into n;
+
+	DROP TABLE IF EXISTS similar_customers;
+
+    CREATE TABLE similar_customers(
+							CustomerID int,
+                            similar_CustomerID int,
+                            Country Varchar(255),
+                            SupportRepId int,
+                            TotalAmount double,
+                            country_sim int,
+                            support_sim int,
+                            amount_sim double,
+                            gen_sim int,
+                            similarity double);
+
+	set i=0;
+    while i<n DO
+			
+		select CustomerID, Country, SupportRepId, TotalAmount
+			from knn_summary
+		order by CustomerID limit i,1 into cust, cntry, supprep, totam;
+                    
+		INSERT INTO similar_customers 
+        SELECT cust, z.*,
+			   country_sim + support_sim + amount_sim + gen_sim AS similarity
+		  FROM (
+				SELECT knn_summary.*,
+					   CASE WHEN Country = cntry THEN 3 ELSE 0 END AS country_sim,
+					   CASE WHEN SupportRepID = supprep THEN 1 ELSE 0 END AS support_sim,
+					   6 * (1 - ABS(TotalAmount - totam)/GREATEST(TotalAmount,totam)) AS amount_sim,
+					   count(genre) as gen_sim 
+				  FROM knn_summary
+				  inner join (select genre, CustomerID 
+								from customers_genres where genre in 
+								(select genre from customers_genres where customerID=1)) a
+							ON knn_summary.CustomerID=a.CustomerID         
+				 WHERE knn_summary.CustomerId != cust
+				 group by knn_summary.CustomerID, Country, SupportRepId, TotalAmount
+				) z
+		  ORDER BY similarity DESC
+		  LIMIT 3;
+		
+        set i=i+1;
+	END WHILE;
+END$$
+DELIMITER ;         
+
+call similar_customers;
+
 
 SELECT z.*,
-       country_sim + support_sim + amount_sim AS similarity
+       country_sim + support_sim + amount_sim + gen_sim AS similarity
   FROM (
-        SELECT *,
+        SELECT knn_summary.*,
 			   CASE WHEN Country = 'Brazil' THEN 3 ELSE 0 END AS country_sim,
                CASE WHEN SupportRepID = 3 THEN 1 ELSE 0 END AS support_sim,
-			   6 * (1 - ABS(TotalAmount - 39.62)/GREATEST(TotalAmount,39.62)) AS amount_sim
+			   6 * (1 - ABS(TotalAmount - 39.62)/GREATEST(TotalAmount,39.62)) AS amount_sim,
+               count(genre) as gen_sim 
           FROM knn_summary
-         WHERE CustomerId != 1
+          inner join (select genre, CustomerID 
+						from customers_genres where genre in 
+                        (select genre from customers_genres where customerID=1)) a
+					ON knn_summary.CustomerID=a.CustomerID         
+         WHERE knn_summary.CustomerId != 1
+         group by knn_summary.CustomerID, Country, SupportRepId, TotalAmount
         ) z
   ORDER BY similarity DESC
   LIMIT 3;
-
 
 ##################################
 # Exercise 3: Transitive Closure #
